@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XDP Water Meter Reader</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 500px; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: auto; }
+        h2 { color: #333; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; background: #007bff; color: white; padding: 12px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #status { margin-top: 15px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>XDP Meter Reader</h2>
+    <form id="meterForm">
+        <div class="form-group">
+            <label for="accountNo">Account No:</label>
+            <input type="text" id="accountNo" required placeholder="e.g., ACC-001">
+        </div>
+        <div class="form-group">
+            <label for="fullName">Consumer Name:</label>
+            <input type="text" id="fullName" required placeholder="e.g., Dexter Onda">
+        </div>
+        <div class="form-group">
+            <label for="prevReading">Previous Reading:</label>
+            <input type="number" id="prevReading" required placeholder="0">
+        </div>
+        <div class="form-group">
+            <label for="currReading">Current Reading:</label>
+            <input type="number" id="currReading" required placeholder="Enter current meter reading">
+        </div>
+        <button type="submit" id="submitBtn">Submit Reading</button>
+    </form>
+    <div id="status"></div>
+</div>
+
+<script>
+    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+    const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+    document.getElementById('meterForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById('submitBtn');
+        const status = document.getElementById('status');
+        btn.disabled = true;
+        btn.innerText = "Submitting...";
+        status.style.color = "#333";
+        status.innerText = "Sending data to Google Sheets...";
+
+        const data = {
+            accountNo: document.getElementById('accountNo').value,
+            fullName: document.getElementById('fullName').value,
+            prevReading: parseFloat(document.getElementById('prevReading').value),
+            currReading: parseFloat(document.getElementById('currReading').value)
+        };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Needed for Google Apps Script endpoints
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(() => {
+            status.style.color = "green";
+            status.innerText = "Reading successfully logged to Google Sheets!";
+            document.getElementById('meterForm').reset();
+            btn.disabled = false;
+            btn.innerText = "Submit Reading";
+        })
+        .catch(error => {
+            status.style.color = "red";
+            status.innerText = "Error logging reading. Try again.";
+            btn.disabled = false;
+            btn.innerText = "Submit Reading";
+            console.error('Error!', error);
+        });
+    });
+</script>
+
+</body>
+</html>
